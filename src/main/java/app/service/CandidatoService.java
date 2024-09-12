@@ -47,7 +47,7 @@ public class CandidatoService {
 			if(candidatoDeletado != null) {
 				return "Candidato desativado com sucesso!";
 			}else {
-				return "Erro ao desativar cadidato!";
+				throw new RuntimeException("Erro ao inativar candidato!");
 			}
 			
 		}else {

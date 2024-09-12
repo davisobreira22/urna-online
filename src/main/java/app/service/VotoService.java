@@ -1,6 +1,7 @@
 package app.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import app.entity.Apuracao;
+import app.entity.Candidato;
 import app.entity.Eleitor;
 import app.entity.Voto;
 import app.repository.EleitorRepository;
@@ -21,6 +23,9 @@ public class VotoService {
 
 	@Autowired
 	EleitorRepository eleitorRepository;
+	
+	@Autowired
+	CandidatoService candidatoService;
 
 	public String salvarVoto(Voto voto, long id) {
 
@@ -52,7 +57,7 @@ public class VotoService {
 					eleitorRepository.save(eleitorBD.get());
 					return "Voto salvo com sucesso! Comprovante: "+hash;
 				} else {
-					return "Erro ao salvar o voto! Tente novamente!";
+					throw new RuntimeException("Erro ao salvar o voto! Tente novamente!");
 				}
 
 			} else {
@@ -64,7 +69,28 @@ public class VotoService {
 	}
 	
 	public Apuracao realizarApuracao() {
-		return null;
+		
+		List<Candidato> candidatosPrefeito = this.candidatoService.findAllPrefeitosAtivos();
+		List<Candidato> candidatosVereador = this.candidatoService.findAllVereadoresAtivos();
+		
+		for (Candidato candidato : candidatosPrefeito) {
+	        int votosTotais = votoRepository.contarVotosPorCandidatoPrefeito(candidato.getId());
+	        candidato.setVotosApurados(votosTotais);
+	    }
+		
+		for (Candidato candidato : candidatosVereador) {
+	        int votosTotais = votoRepository.contarVotosPorCandidatoVereador(candidato.getId());
+	        candidato.setVotosApurados(votosTotais);
+	    }
+		
+		candidatosPrefeito.sort((c1, c2) -> Integer.compare(c2.getVotosApurados(), c1.getVotosApurados()));
+	    candidatosVereador.sort((c1, c2) -> Integer.compare(c2.getVotosApurados(), c1.getVotosApurados()));
+
+	    Apuracao apuracao = new Apuracao();
+	    apuracao.setPrefeitos(candidatosPrefeito);
+	    apuracao.setVereador(candidatosVereador);
+
+	    return apuracao;
 	}
 
 }

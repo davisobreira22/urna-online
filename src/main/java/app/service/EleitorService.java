@@ -62,7 +62,7 @@ public class EleitorService {
 
 		if (eleitorBD.isPresent()) {
 			if (eleitorBD.get().getStatus() == "VOTOU") {
-				throw new IllegalStateException("Eleitor já votou. Não foi possível inativá-lo!");	
+				throw new RuntimeException("Eleitor já votou. Não foi possível inativá-lo!");	
 			}
 			eleitorBD.get().setStatus("INATIVO");
 			Eleitor eleitorDeletado = this.eleitorRepository.save(eleitorBD.get());
@@ -70,11 +70,11 @@ public class EleitorService {
 			if(eleitorDeletado != null) {
 				return "Eleitor inativado com sucesso!";
 			}else {
-				return "Erro ao desativar eleitor!";
+				throw new RuntimeException("Erro ao inativar eleitor!");
 			}
 		}
 		else {
-			return null;
+			throw new RuntimeException("Eleitor não encontrado!");
 		}
 		
 	}
